@@ -61,13 +61,14 @@ export function SignUpForm({
           full_name: fullName,
           sponsor: sponsor,
         },
-        emailRedirectTo: `${window.location.origin}/protected`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/protected`,
+
       },
     });
     if (error) throw error;
 
     // ✅ Only insert into `users` table if signup was successful
-    const inviteLink = `${window.location.origin}/auth/signup?invited_by=${encodeURIComponent(email)}`;
+   const inviteLink = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/sign-up?invited_by=${encodeURIComponent(email)}`
 
     await supabase.from("users").insert({
       id: data.user?.id,
