@@ -1,5 +1,4 @@
-"use client";
-
+import { Suspense } from "react";
 import { AppSidebar } from "@/components/admin_component/app-sidebar";
 import {
   Breadcrumb,
@@ -15,27 +14,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/admin_ui/sidebar";
-import { useSearchParams } from "next/navigation";
-
-// Page components (create them as placeholders)
-import CurrentUsers from "@/components/admin_component/users";
-import ActiveServices from "@/components/admin_component/ActiveServices";
-import PendingServices from "@/components/admin_component/PendingServices";
-import CancelledServices from "@/components/admin_component/CancelledServices";
+import AdminPageContent from "@/components/admin_component/AdminPageContent";
 
 export default function Page() {
-  const searchParams = useSearchParams();
-  const section = searchParams.get("section");
-  const tab = searchParams.get("tab");
-
-  const renderPage = () => {
-    if (section === "users" && tab === "current") return <CurrentUsers />;
-    if (section === "services" && tab === "active") return <ActiveServices />;
-    if (section === "services" && tab === "pending") return <PendingServices />;
-    if (section === "services" && tab === "cancelled") return <CancelledServices />;
-    return <div className="p-6 text-muted-foreground">← Select a menu from sidebar</div>;
-  };
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen">
@@ -61,7 +42,8 @@ export default function Page() {
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block" />
                     <BreadcrumbItem>
-                      <BreadcrumbPage>{tab ?? "Dashboard"}</BreadcrumbPage>
+                      {/* You can keep this static or you can lift tab state if needed */}
+                      <BreadcrumbPage>Dashboard</BreadcrumbPage>
                     </BreadcrumbItem>
                   </BreadcrumbList>
                 </Breadcrumb>
@@ -69,7 +51,11 @@ export default function Page() {
             </header>
 
             {/* Dynamic Content */}
-            <div className="p-4">{renderPage()}</div>
+            <Suspense fallback={<div>Loading...</div>}>
+              <div className="p-4">
+                <AdminPageContent />
+              </div>
+            </Suspense>
           </SidebarInset>
         </div>
       </div>
