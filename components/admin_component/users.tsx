@@ -9,7 +9,7 @@ type User = {
   phone: string | null;
   sponsor: string | null;
   invite_link: string | null;
-  invites: any;
+  invites: string[];  // Changed from any to string[]
   role: string | null;
   email: string | null;
 };
@@ -74,7 +74,7 @@ export default function CurrentUsers() {
                 <th className="p-3 border">Phone</th>
                 <th className="p-3 border">Sponsor</th>
                 <th className="p-3 border">Invite Link</th>
-                <th className="p-3 border">Invites</th>
+                <th className="p-3 border max-w-[200px]">Invites</th>
                 <th className="p-3 border">Role</th>
                 <th className="p-3 border">Actions</th>
               </tr>
@@ -91,7 +91,7 @@ export default function CurrentUsers() {
                   </td>
                   <td className="p-3 border max-w-[200px]">
                     <pre className="whitespace-pre-wrap break-words">
-                      {JSON.stringify(user.invites, null, 2)}
+                      {JSON.stringify(user.invites ?? [], null, 2)}
                     </pre>
                   </td>
                   <td className="p-3 border">
