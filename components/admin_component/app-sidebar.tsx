@@ -27,6 +27,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const supabase = createClient();
 
+  // Fetch user data from Supabase
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -35,18 +36,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     fetchUser();
   }, []);
 
+  // Handle logout functionality
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/"); // Redirect to home page after logout
   };
 
+  // Data to pass to the NavUser component
   const data = {
     user: {
       name: "NDS Admin",
       email: userEmail ?? "Loading...",
       avatar: "/avatars/shadcn.jpg",
-      onLogout: handleLogout,
-      onHome: () => router.push("/"),
     },
     teams: [
       {
@@ -98,7 +99,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {/* Pass user data and methods separately */}
+        <NavUser
+          user={data.user}
+          onHome={() => router.push("/")} // Home route
+          onLogout={handleLogout} // Logout functionality
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
