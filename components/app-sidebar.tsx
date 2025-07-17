@@ -1,56 +1,53 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   BookOpen,
   GalleryVerticalEnd,
   Settings2,
   SquareTerminal,
-} from "lucide-react"
+} from "lucide-react";
 
-import { createClient } from "@/lib/supabase/client"
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { createClient } from "@/lib/supabase/client";
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [userEmail, setUserEmail] = useState<string | null>(null)
-  const router = useRouter()
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const router = useRouter();
 
-  const supabase = createClient()
+  const supabase = createClient();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) {
-        setUserEmail(data.user.email ?? null)
-      } else {
-        setUserEmail(null)
-      }
-    }
-    fetchUser()
-  }, [])
+      const { data } = await supabase.auth.getUser();
+      setUserEmail(data?.user?.email ?? null);
+    };
+    fetchUser();
+  }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/") // Redirect to homepage
-  }
+    await supabase.auth.signOut();
+    router.push("/");
+  };
 
-  const navData = {
+  // 👇 Same structure as admin sidebar
+  const data = {
     user: {
       name: "NDS User",
       email: userEmail ?? "Loading...",
-      avatar: "/avatars/shadcn.jpg", // Optional: replace with user's profile pic if stored
+      avatar: "/avatars/shadcn.jpg",
       onLogout: handleLogout,
       onHome: () => router.push("/"),
     },
@@ -62,26 +59,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
     navMain: [
-      {
-        title: "Nds Services",
+        {
+        title: "Dashboard Overview",
         url: "#",
         icon: SquareTerminal,
-        isActive: true,
         items: [
-          { title: "Social Media Service", url: "#" },
-          { title: "Healthcare Service", url: "#" },
-          { title: "Educational Service", url: "#" },
+          {
+            title: "Invite link",
+            url: "/dashboard?section=dashboard&tab=invite",
+          },
         ],
       },
       {
-        title: "Nds License and Documentation",
+        title: "NDS Services",
+        url: "#",
+        icon: SquareTerminal,
+        items: [
+          {
+            title: "Current Nds Service",
+            url: "/dashboard?section=services&tab=nds",
+          },
+        ],
+      },
+    
+      {
+        title: "NDS License",
         url: "#",
         icon: BookOpen,
         items: [
-          { title: "Introduction", url: "#" },
-          { title: "Get Started", url: "#" },
-          { title: "Tutorials", url: "#" },
-          { title: "Changelog", url: "#" },
+          {
+            title: "License Document",
+            url: "/dashboard?section=docs&tab=licence",
+          },
         ],
       },
       {
@@ -89,26 +98,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "#",
         icon: Settings2,
         items: [
-          { title: "Active Services", url: "#" },
-          { title: "Pending Services", url: "#" },
-          { title: "Canceled Services", url: "#" },
+          {
+            title: "Active Services",
+            url: "/dashboard?section=my-services&tab=active",
+          },
+          {
+            title: "Pending Services",
+            url: "/dashboard?section=my-services&tab=pending",
+          },
+          {
+            title: "Canceled Services",
+            url: "/dashboard?section=my-services&tab=cancelled",
+          },
         ],
       },
     ],
-  }
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={navData.teams} />
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navData.navMain} />
+        <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={navData.user} />
+        <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

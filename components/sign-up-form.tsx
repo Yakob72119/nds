@@ -39,54 +39,83 @@ export function SignUpForm({
     }
   }, [searchParams]);
 
- const handleSignUp = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const supabase = createClient();
-  setError(null);
-  setIsLoading(true);
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const supabase = createClient();
+    setError(null);
+    setIsLoading(true);
 
-  if (password !== repeatPassword) {
-    setError("Passwords do not match");
-    setIsLoading(false);
-    return;
-  }
+    if (password !== repeatPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
 
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      phone: phone,
-      options: {
-        data: {
-          full_name: fullName,
-          sponsor: sponsor,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        phone,
+        options: {
+          data: {
+            full_name: fullName,
+            sponsor,
+          },
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/protected`,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/protected`,
+      });
+      if (error) throw error;
 
-      },
-    });
-    if (error) throw error;
+      // Insert new user record into 'users' table
+      const inviteLink = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/sign-up?invited_by=${encodeURIComponent(email)}`;
 
-    // ✅ Only insert into `users` table if signup was successful
-   const inviteLink = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/sign-up?invited_by=${encodeURIComponent(email)}`
+      const insertResult = await supabase.from("users").insert({
+        id: data.user?.id,
+        full_name: fullName,
+        phone,
+        sponsor,
+        email,
+        invites: [],
+        invite_link: inviteLink,
+      });
 
-    await supabase.from("users").insert({
-      id: data.user?.id,
-      full_name: fullName,
-      phone: phone,
-      sponsor: sponsor,
-      invites: [],
-      invite_link: inviteLink,
-    });
+      if (insertResult.error) throw insertResult.error;
 
-    // ✅ Only redirect after successful signup + DB insert
-    router.push("/auth/sign-up-success");
-  } catch (err: unknown) {
-    setError(err instanceof Error ? err.message : "An error occurred");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      // If sponsor is not "self-sponsored", update inviter's invites array
+      if (sponsor !== "self-sponsored") {
+        // Find inviter's user record by email
+        const { data: inviterData, error: inviterError } = await supabase
+          .from("users")
+          .select("invites")
+          .eq("email", sponsor)
+          .single();
+
+        if (inviterError) {
+          console.warn("Inviter not found or error:", inviterError.message);
+        } else {
+          // Append new user id to inviter's invites array
+          const updatedInvites = inviterData.invites || [];
+          updatedInvites.push(data.user?.id);
+
+          // Update inviter record with new invites array
+          const { error: updateError } = await supabase
+            .from("users")
+            .update({ invites: updatedInvites })
+            .eq("email", sponsor);
+
+          if (updateError) {
+            console.warn("Failed to update inviter invites:", updateError.message);
+          }
+        }
+      }
+
+      router.push("/auth/sign-up-success");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

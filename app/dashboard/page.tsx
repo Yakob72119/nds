@@ -1,4 +1,8 @@
-import { AppSidebar } from "@/components/app-sidebar"
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { AppSidebar } from "@/components/app-sidebar";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,26 +10,58 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-export default function Page() {
+// --- Replace these placeholders with actual components ---
+import Nds from "@/components/user_components/nds";
+import Licence from "@/components/user_components/Licence";
+import MyActiveServices from "@/components/user_components/MyActiveServices";
+import MyPendingServices from "@/components/user_components/MyPendingServices";
+import MyCancelledServices from "@/components/user_components/MyCancelledServices";
+import DashboardOverview from "@/components/user_components/DashboardOverview";
+// ---------------------------------------------------------
+
+export default function UserDashboardPage() {
+  const searchParams = useSearchParams();
+  const section = searchParams.get("section");
+  const tab = searchParams.get("tab");
+
+  const renderPage = () => {
+    // dashboard section
+    if (section === "dashboard" && tab === "invite") return <DashboardOverview />;
+    // Services Section
+    if (section === "services" && tab === "nds") return <Nds />;
+
+    // Docs Section
+    if (section === "docs" && tab === "licence") return <Licence />;
+
+    // My Services Section
+    if (section === "my-services" && tab === "active") return <MyActiveServices />;
+    if (section === "my-services" && tab === "pending") return <MyPendingServices />;
+    if (section === "my-services" && tab === "cancelled") return <MyCancelledServices />;
+
+    // Default Message
+    return <div className="p-6 text-muted-foreground">← Select a menu from sidebar</div>;
+  };
+
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        {/* Sidebar with fixed width */}
-        <div className="w-[280px] shrink-0">
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <div className="hidden md:block md:w-64 fixed inset-y-0 left-0 z-30">
           <AppSidebar />
         </div>
 
-        {/* Main content */}
-        <div className="flex flex-col flex-1">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col md:ml-64">
           <SidebarInset>
+            {/* Header */}
             <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />
@@ -36,27 +72,23 @@ export default function Page() {
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">
-                        Building Your Application
-                      </BreadcrumbLink>
+                      <BreadcrumbLink href="#">NDS User</BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block" />
                     <BreadcrumbItem>
-                      <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                      <BreadcrumbPage>
+                        {tab
+                          ? tab.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+                          : "Dashboard"}
+                      </BreadcrumbPage>
                     </BreadcrumbItem>
                   </BreadcrumbList>
                 </Breadcrumb>
               </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-              <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div className="bg-muted/50 aspect-video rounded-xl" />
-                <div className="bg-muted/50 aspect-video rounded-xl" />
-                <div className="bg-muted/50 aspect-video rounded-xl" />
-              </div>
-              <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-            </div>
+            {/* Dynamic Page Content */}
+            <div className="p-4">{renderPage()}</div>
           </SidebarInset>
         </div>
       </div>
