@@ -27,17 +27,19 @@ import {
   useSidebar,
 } from "@/components/admin_ui/sidebar"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-    onHome: () => void
-    onLogout: () => void
-  }
-}) {
+type User = {
+  name: string
+  email: string
+  avatar: string
+}
+
+type NavUserProps = {
+  user: User
+  onHome: () => void
+  onLogout: () => void
+}
+
+export function NavUser({ user, onHome, onLogout }: NavUserProps) {
   const { isMobile } = useSidebar()
 
   return (
@@ -51,7 +53,7 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">Mds Admin</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -83,7 +85,7 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={user.onHome}>
+              <DropdownMenuItem onClick={onHome}>
                 <Home className="mr-2 h-4 w-4" />
                 Home
               </DropdownMenuItem>
@@ -91,7 +93,7 @@ export function NavUser({
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={user.onLogout}>
+            <DropdownMenuItem onClick={onLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>
