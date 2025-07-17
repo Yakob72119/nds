@@ -33,6 +33,7 @@ type User = {
   avatar: string
 }
 
+
 type NavUserProps = {
   user: User
   onHome: () => void
