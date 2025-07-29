@@ -1,18 +1,13 @@
-// app/api/payment/verify/[tx_ref]/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import axios from "axios";
 
-// DO NOT manually type { params: { tx_ref: string } }
-// Let Next.js infer it and extract `params` cleanly
-
 export async function GET(
   req: NextRequest,
-  { params }: { params: { tx_ref: string } }
+  context: { params: { tx_ref: string } }
 ) {
   const supabase = await createClient();
-  const tx_ref = params.tx_ref;
+  const tx_ref = context.params.tx_ref;
 
   if (!tx_ref) {
     return NextResponse.json(
