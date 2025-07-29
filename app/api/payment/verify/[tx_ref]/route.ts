@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
+// app/api/payment/verify/[tx_ref]/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import axios from "axios";
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { tx_ref: string } }
 ) {
   const supabase = await createClient();
