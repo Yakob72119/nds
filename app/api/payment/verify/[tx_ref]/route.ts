@@ -9,12 +9,10 @@ import axios from "axios";
 
 export async function GET(
   req: NextRequest,
-  context: { params: Record<string, string | string[]> }
+  { params }: { params: { tx_ref: string } }
 ) {
   const supabase = await createClient();
-  const tx_ref = Array.isArray(context.params.tx_ref)
-    ? context.params.tx_ref[0]
-    : context.params.tx_ref;
+  const tx_ref = params.tx_ref;
 
   if (!tx_ref) {
     return NextResponse.json(
