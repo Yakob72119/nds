@@ -1,15 +1,13 @@
-// app/api/payment/verify/[tx_ref]/route.ts
-
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import axios from "axios";
 
 export async function GET(
   req: Request,
-  context: { params: { tx_ref: string } }
+  { params }: { params: { tx_ref: string } }
 ) {
   const supabase = await createClient();
-  const { tx_ref } = context.params;
+  const { tx_ref } = params;
 
   if (!tx_ref) {
     return NextResponse.json(
@@ -26,7 +24,6 @@ export async function GET(
   };
 
   try {
-    // Verify transaction with Chapa
     const response = await axios.get(
       `https://api.chapa.co/v1/transaction/verify/${tx_ref}`,
       config
@@ -46,7 +43,6 @@ export async function GET(
     if (status === "success") paymentStatus = "success";
     else if (status === "failed") paymentStatus = "failed";
 
-    // Update payment status in Supabase
     const { error: updateError } = await supabase
       .from("transactions")
       .update({ status: paymentStatus })
