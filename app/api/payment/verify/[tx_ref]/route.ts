@@ -1,24 +1,27 @@
 // app/api/payment/verify/[tx_ref]/route.ts
 
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import axios from 'axios';
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import axios from "axios";
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { tx_ref: string } }
+  req: Request,
+  context: { params: { tx_ref: string } }
 ) {
   const supabase = await createClient();
-  const tx_ref = params.tx_ref;
+  const { tx_ref } = context.params;
 
   if (!tx_ref) {
-    return NextResponse.json({ error: 'Missing transaction reference' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing transaction reference" },
+      { status: 400 }
+    );
   }
 
   const config = {
     headers: {
       Authorization: `Bearer ${process.env.CHAPA_AUTH}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   };
 
@@ -33,26 +36,39 @@ export async function GET(
     const status = chapaData?.status;
 
     if (!status) {
-      return NextResponse.json({ error: 'Invalid Chapa response' }, { status: 500 });
+      return NextResponse.json(
+        { error: "Invalid Chapa response" },
+        { status: 500 }
+      );
     }
 
-    let paymentStatus = 'pending';
-    if (status === 'success') paymentStatus = 'success';
-    else if (status === 'failed') paymentStatus = 'failed';
+    let paymentStatus: "pending" | "success" | "failed" = "pending";
+    if (status === "success") paymentStatus = "success";
+    else if (status === "failed") paymentStatus = "failed";
 
+    // Update payment status in Supabase
     const { error: updateError } = await supabase
-      .from('transactions')
+      .from("transactions")
       .update({ status: paymentStatus })
-      .eq('chapa_tx_ref', tx_ref);
+      .eq("chapa_tx_ref", tx_ref);
 
     if (updateError) {
-      console.error('Update Error:', updateError.message);
-      return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
+      console.error("Update Error:", updateError.message);
+      return NextResponse.json(
+        { error: "Failed to update transaction" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ message: 'Payment verified', status: paymentStatus }, { status: 200 });
+    return NextResponse.json(
+      { message: "Payment verified", status: paymentStatus },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('Chapa Verification Error:', error);
-    return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
+    console.error("Chapa Verification Error:", error);
+    return NextResponse.json(
+      { error: "Verification failed" },
+      { status: 500 }
+    );
   }
 }
