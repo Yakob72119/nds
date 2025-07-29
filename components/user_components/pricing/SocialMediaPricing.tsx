@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,13 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
-interface SocialMediaPricingProps {
-  onSelectPackage?: (packageName: string, price: number) => void;
-}
+const SocialMediaPricing: React.FC = () => {
+  const [loading, setLoading] = useState<string | null>(null);
 
-const SocialMediaPricing: React.FC<SocialMediaPricingProps> = ({
-  onSelectPackage = () => {},
-}) => {
   const packages = [
     {
       name: "Silver",
@@ -65,6 +63,34 @@ const SocialMediaPricing: React.FC<SocialMediaPricingProps> = ({
     },
   ];
 
+  const handlePayment = async (pkgName: string, price: number) => {
+    setLoading(pkgName);
+    try {
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_name: pkgName,
+          service_category: "Social Media Services",
+          amount: price,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url; // Redirect to Chapa
+      } else {
+        alert("Failed to start payment. Please try again.");
+      }
+    } catch (err) {
+      console.error("Payment initiation error:", err);
+      alert("An error occurred while starting payment.");
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <div className="w-full bg-white py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -82,7 +108,9 @@ const SocialMediaPricing: React.FC<SocialMediaPricingProps> = ({
           {packages.map((pkg) => (
             <Card
               key={pkg.name}
-              className={`flex flex-col h-full border-2 ${pkg.popular ? "border-primary shadow-lg" : "border-border"}`}
+              className={`flex flex-col h-full border-2 ${
+                pkg.popular ? "border-primary shadow-lg" : "border-border"
+              }`}
             >
               <CardHeader className={`${pkg.color} rounded-t-lg`}>
                 {pkg.popular && (
@@ -117,9 +145,12 @@ const SocialMediaPricing: React.FC<SocialMediaPricingProps> = ({
                 <Button
                   className="w-full"
                   variant={pkg.popular ? "default" : "outline"}
-                  onClick={() => onSelectPackage(pkg.name, pkg.price)}
+                  onClick={() => handlePayment(pkg.name, pkg.price)}
+                  disabled={loading === pkg.name}
                 >
-                  Select {pkg.name} Package
+                  {loading === pkg.name
+                    ? "Processing..."
+                    : `Select ${pkg.name} Package`}
                 </Button>
               </CardFooter>
             </Card>

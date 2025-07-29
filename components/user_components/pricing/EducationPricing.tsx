@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -17,21 +19,36 @@ import {
 } from "@/components/user_components/ui/select";
 import { Label } from "@/components/ui/label";
 
-interface EducationPricingProps {
-  onSelectPackage?: (grade: string) => void;
-}
+const EducationPricing = () => {
+  const [selectedGrade, setSelectedGrade] = useState<string>("9");
+  const [loading, setLoading] = useState(false);
 
-const EducationPricing = ({
-  onSelectPackage = () => {},
-}: EducationPricingProps) => {
-  const [selectedGrade, setSelectedGrade] = React.useState<string>("9");
+  const handlePayment = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_name: "Standard Package",
+          service_category: `Grade ${selectedGrade}`,
+          amount: 1500,
+        }),
+      });
 
-  const handleGradeChange = (value: string) => {
-    setSelectedGrade(value);
-  };
+      const data = await res.json();
 
-  const handleSelectPackage = () => {
-    onSelectPackage(selectedGrade);
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url; // Redirect user to Chapa checkout
+      } else {
+        alert("Payment initialization failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Payment initiation error:", err);
+      alert("Something went wrong while processing your request.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,7 +77,10 @@ const EducationPricing = ({
           <div className="space-y-4">
             <div className="flex flex-col space-y-2">
               <Label htmlFor="grade-select">Select Grade Level</Label>
-              <Select value={selectedGrade} onValueChange={handleGradeChange}>
+              <Select
+                value={selectedGrade}
+                onValueChange={(value) => setSelectedGrade(value)}
+              >
                 <SelectTrigger id="grade-select" className="w-full">
                   <SelectValue placeholder="Select Grade" />
                 </SelectTrigger>
@@ -76,81 +96,11 @@ const EducationPricing = ({
             <div className="space-y-2 mt-6">
               <h3 className="font-semibold text-gray-800">Package Features:</h3>
               <ul className="space-y-2">
-                <li className="flex items-start">
-                  <svg
-                    className="h-5 w-5 text-green-500 mr-2 mt-0.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>Complete curriculum for Grade {selectedGrade}</span>
-                </li>
-                <li className="flex items-start">
-                  <svg
-                    className="h-5 w-5 text-green-500 mr-2 mt-0.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>Structured lesson plans and materials</span>
-                </li>
-                <li className="flex items-start">
-                  <svg
-                    className="h-5 w-5 text-green-500 mr-2 mt-0.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>Regular assessments and progress tracking</span>
-                </li>
-                <li className="flex items-start">
-                  <svg
-                    className="h-5 w-5 text-green-500 mr-2 mt-0.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>Access to educational resources and materials</span>
-                </li>
-                <li className="flex items-start">
-                  <svg
-                    className="h-5 w-5 text-green-500 mr-2 mt-0.5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>Qualified teachers and academic support</span>
-                </li>
+                <li>Complete curriculum for Grade {selectedGrade}</li>
+                <li>Structured lesson plans and materials</li>
+                <li>Regular assessments and progress tracking</li>
+                <li>Access to educational resources and materials</li>
+                <li>Qualified teachers and academic support</li>
               </ul>
             </div>
           </div>
@@ -160,9 +110,10 @@ const EducationPricing = ({
           <Button
             size="lg"
             className="w-full max-w-xs bg-blue-600 hover:bg-blue-700 text-white font-medium"
-            onClick={handleSelectPackage}
+            onClick={handlePayment}
+            disabled={loading}
           >
-            Select Package
+            {loading ? "Processing..." : "Select Package"}
           </Button>
         </CardFooter>
       </Card>

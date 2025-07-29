@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import {
   Card,
@@ -58,18 +60,42 @@ const HealthPricing = () => {
     },
   ]);
 
+  const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
+
   const handleAmountChange = (index: number, value: string) => {
     const newPackages = [...packages];
     newPackages[index].amount = Number(value) || 0;
     setPackages(newPackages);
   };
 
-  const handleSubscribe = (packageTitle: string, amount: number) => {
-    // This would handle the subscription process
-    console.log(
-      `Subscribing to ${packageTitle} package with amount: ${amount} birr`,
-    );
-    // In a real application, this would navigate to checkout or process the payment
+  const handleSubscribe = async (pkg: HealthPackage, index: number) => {
+    if (pkg.amount <= 0) return alert("Please enter a valid amount");
+
+    setLoadingIndex(index);
+    try {
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_name: pkg.title,
+          service_category: "Health Service",
+          amount: pkg.amount,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url; // Redirect to Chapa checkout
+      } else {
+        alert("Failed to initialize payment. Please try again.");
+      }
+    } catch (error) {
+      console.error("Payment Error:", error);
+      alert("Something went wrong during payment initialization.");
+    } finally {
+      setLoadingIndex(null);
+    }
   };
 
   return (
@@ -139,10 +165,12 @@ const HealthPricing = () => {
             <CardFooter>
               <Button
                 className="w-full"
-                onClick={() => handleSubscribe(pkg.title, pkg.amount)}
-                disabled={pkg.amount <= 0}
+                onClick={() => handleSubscribe(pkg, index)}
+                disabled={pkg.amount <= 0 || loadingIndex === index}
               >
-                {pkg.amount > 0
+                {loadingIndex === index
+                  ? "Processing..."
+                  : pkg.amount > 0
                   ? `Subscribe for ${pkg.amount} birr`
                   : "Enter an amount"}
               </Button>
